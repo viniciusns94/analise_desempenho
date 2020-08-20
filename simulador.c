@@ -67,12 +67,12 @@ int main() {
     inicia(&ew_chegada);
     inicia(&ew_saida);
 
-	double tempo_medio_clientes = 0.25;
+	double tempo_medio_clientes = 3;
 	/*printf("Informe o tempo medio entre a chegada de clientes (segundos): ");
 	scanf("%lF", &tempo_medio_clientes);*/
 	tempo_medio_clientes = 1.0 / tempo_medio_clientes;
 
-	double tempo_medio_atendimento = 0.15;
+	double tempo_medio_atendimento = 2.97;
 	/*printf("Informe o tempo medio gasto para atender cada cliente (segundos): ");
 	scanf("%lF", &tempo_medio_atendimento);*/
 	tempo_medio_atendimento = 1.0 / tempo_medio_atendimento;
@@ -80,7 +80,7 @@ int main() {
 	//tempo decorrido tempo da simulacao
 	double tempo;
 
-	double tempo_simulacao = 1000;
+	double tempo_simulacao = 10000;
 	/*printf("Informe o tempo total de simulacao (segundos): ");
 	scanf("%lF", &tempo_simulacao);*/
 
@@ -93,7 +93,7 @@ int main() {
 	
 	double fila = 0.0;
 	double ocupacao = 0.0;
-
+	printf("Caculando ...");
 	//logica da simulacao
 	while (tempo <= tempo_simulacao) {
 		//nao existe cliente sendo atendido no momento atual,
@@ -106,10 +106,10 @@ int main() {
 		}
 
 		if (tempo == chegada_cliente) {
-			printf("Chegada de cliente: %lf\n", chegada_cliente);
+			//printf("Chegada de cliente: %lf\n", chegada_cliente);
 			//evento de chegada de cliente
 			fila ++;
-			printf("fila: %lf\n", fila);
+			//printf("fila: %lf\n", fila);
 			//indica que o caixa esta ocioso
 			//logo, pode-se comecar a atender
 			//o cliente que acaba de chegar
@@ -144,9 +144,9 @@ int main() {
 			//verifico se ha cliente na fila
 			if(fila){
 				fila--;
-				printf("fila: %lf\n", fila);
+				//printf("fila: %lf\n", fila);
 				saida_atendimento = tempo + (-1.0 / tempo_medio_atendimento) * log(aleatorio());
-				printf("saida de cliente: %lf\n", saida_atendimento);
+				//printf("saida de cliente: %lf\n", saida_atendimento);
 
 				if (saida_atendimento < chegada_cliente)
                     ocupacao += saida_atendimento - tempo;
@@ -167,8 +167,9 @@ int main() {
 				saida_atendimento = 0.0;
 			}
 		}
-		printf("==================\n");
+		/*printf("==================\n");*/
 	}	
+	printf("Caculado ...");
 	ew_chegada.soma_areas += ew_chegada.qtd_elementos * (tempo - ew_chegada.tempo_anterior);
     ew_saida.soma_areas += ew_saida.qtd_elementos * (tempo - ew_saida.tempo_anterior);
 
@@ -176,13 +177,16 @@ int main() {
     double ew = ew_chegada.soma_areas - ew_saida.soma_areas;
     ew = ew/ew_chegada.qtd_elementos;
 
+	double lambda = ew_chegada.qtd_elementos / tempo;
+
 	printf("===========================================\n\n");
     printf("Ocupacao: %lf\n", ocupacao/tempo);
     printf("\n=========================================\n\n");
     printf("E[N] = %lf\n", en_final);
-    printf("E[N] = %lf\n", ew);
+    printf("E[W] = %lf\n", ew);
+	printf("Lambda = %lf\n", lambda);
     printf("=========================================\n");
-	getchar();
-	getchar();
+//	getchar();
+//	getchar();
 	return 0;
 }

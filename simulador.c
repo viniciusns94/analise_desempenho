@@ -6,7 +6,7 @@
 
 /* 
  * File:   main.c
- * Author: flavio
+ * Author: vinicius.nogueira
  *
  * Created on 2 de Abril de 2020, 14:58
  */
@@ -15,6 +15,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+
+typedef struct inOut_ {
+    double tempo_anterior;
+    double soma_areas;
+    double qtd_elementos;
+} in_out;
 
 /**
  * Retorna um valor contido no intervalo entre (0,1]
@@ -34,6 +40,12 @@ double minimo(double n1, double n2) {
 	return n2;
 }
 
+void inicia(in_out *l){
+    l->qtd_elementos = 0.0;
+    l->soma_areas = 0.0;
+    l->tempo_anterior = 0.0;
+}
+
 /**
  * Simulador de um caixa onde clientes cheguem em média a cada 10 segundos,
  * e o caixa gaste em média 8 segundos para atender cada cliente.
@@ -47,22 +59,30 @@ double minimo(double n1, double n2) {
 int main() {
 	srand(time(NULL));
 
-	double tempo_medio_clientes;
-	printf("Informe o tempo medio entre a chegada de clientes (segundos): ");
-	scanf("%lF", &tempo_medio_clientes);
+	in_out en;
+    in_out ew_chegada;
+    in_out ew_saida;
+    
+    inicia(&en);
+    inicia(&ew_chegada);
+    inicia(&ew_saida);
+
+	double tempo_medio_clientes = 0.25;
+	/*printf("Informe o tempo medio entre a chegada de clientes (segundos): ");
+	scanf("%lF", &tempo_medio_clientes);*/
 	tempo_medio_clientes = 1.0 / tempo_medio_clientes;
 
-	double tempo_medio_atendimento;
-	printf("Informe o tempo medio gasto para atender cada cliente (segundos): ");
-	scanf("%lF", &tempo_medio_atendimento);
+	double tempo_medio_atendimento = 0.15;
+	/*printf("Informe o tempo medio gasto para atender cada cliente (segundos): ");
+	scanf("%lF", &tempo_medio_atendimento);*/
 	tempo_medio_atendimento = 1.0 / tempo_medio_atendimento;
 
 	//tempo decorrido tempo da simulacao
 	double tempo;
 
-	double tempo_simulacao;
-	printf("Informe o tempo total de simulacao (segundos): ");
-	scanf("%lF", &tempo_simulacao);
+	double tempo_simulacao = 1000;
+	/*printf("Informe o tempo total de simulacao (segundos): ");
+	scanf("%lF", &tempo_simulacao);*/
 
 	//armazena o tempo de chegada do proximo cliente
 	double chegada_cliente = (-1.0 / tempo_medio_clientes) * log(aleatorio());
@@ -72,6 +92,7 @@ int main() {
 	double saida_atendimento = 0.0;
 	
 	double fila = 0.0;
+	double ocupacao = 0.0;
 
 	//logica da simulacao
 	while (tempo <= tempo_simulacao) {
@@ -84,12 +105,11 @@ int main() {
 			tempo = minimo(chegada_cliente, saida_atendimento);
 		}
 
-
 		if (tempo == chegada_cliente) {
-			printf("Chegada de cliente: %lF\n", chegada_cliente);
+			printf("Chegada de cliente: %lf\n", chegada_cliente);
 			//evento de chegada de cliente
 			fila ++;
-			printf("fila: %lF\n", fila);
+			printf("fila: %lf\n", fila);
 			//indica que o caixa esta ocioso
 			//logo, pode-se comecar a atender
 			//o cliente que acaba de chegar
@@ -99,6 +119,22 @@ int main() {
 
 			//gerar o tempo de chegada do proximo cliente
 			chegada_cliente = tempo + (-1.0 / tempo_medio_clientes) * log(aleatorio());
+
+			if (saida_atendimento < chegada_cliente)
+                ocupacao += saida_atendimento - tempo;
+            else
+                ocupacao += chegada_cliente - tempo;
+
+			//calculo -- E[N]
+            en.soma_areas += en.qtd_elementos * (tempo - en.tempo_anterior);
+            en.qtd_elementos++;
+            en.tempo_anterior = tempo;
+
+			//calculo -- E[W] chegada
+            ew_chegada.soma_areas += ew_chegada.qtd_elementos * (tempo - ew_chegada.tempo_anterior);
+            ew_chegada.qtd_elementos++;
+            ew_chegada.tempo_anterior = tempo;
+
 		} else {
 			//evento de saida de cliente
 			//a cabeca da fila nao consiste no cliente em atendimento.
@@ -108,19 +144,45 @@ int main() {
 			//verifico se ha cliente na fila
 			if(fila){
 				fila--;
-				printf("fila: %lF\n", fila);
+				printf("fila: %lf\n", fila);
 				saida_atendimento = tempo + (-1.0 / tempo_medio_atendimento) * log(aleatorio());
-				printf("saida de cliente: %lF\n", saida_atendimento);
+				printf("saida de cliente: %lf\n", saida_atendimento);
 
-			}else{
+				if (saida_atendimento < chegada_cliente)
+                    ocupacao += saida_atendimento - tempo;
+                else
+                    ocupacao += chegada_cliente - tempo;
+
+				//calculo -- E[N] entrada
+				en.soma_areas += en.qtd_elementos * (tempo - en.tempo_anterior);
+				en.qtd_elementos--;
+				en.tempo_anterior = tempo;
+				
+				//calculo -- E[W] saida
+				ew_saida.soma_areas += ew_saida.qtd_elementos * (tempo - ew_saida.tempo_anterior);
+				ew_saida.qtd_elementos++;
+				ew_saida.tempo_anterior = tempo; 
+
+			} else {
 				saida_atendimento = 0.0;
 			}
 		}
 		printf("==================\n");
-	}
-	
-	getchar();
-	getchar();
+	}	
+	ew_chegada.soma_areas += ew_chegada.qtd_elementos * (tempo - ew_chegada.tempo_anterior);
+    ew_saida.soma_areas += ew_saida.qtd_elementos * (tempo - ew_saida.tempo_anterior);
 
-	return (EXIT_SUCCESS);
+	double en_final = en.soma_areas / tempo;
+    double ew = ew_chegada.soma_areas - ew_saida.soma_areas;
+    ew = ew/ew_chegada.qtd_elementos;
+
+	printf("===========================================\n\n");
+    printf("Ocupacao: %lf\n", ocupacao/tempo);
+    printf("\n=========================================\n\n");
+    printf("E[N] = %lf\n", en_final);
+    printf("E[N] = %lf\n", ew);
+    printf("=========================================\n");
+	getchar();
+	getchar();
+	return 0;
 }

@@ -16,11 +16,11 @@
 #include <math.h>
 #include <time.h>
 
-typedef struct inOut_ {
+typedef struct little_ {
     double tempo_anterior;
     double soma_areas;
     double qtd_elementos;
-} in_out;
+} little;
 
 /**
  * Retorna um valor contido no intervalo entre (0,1]
@@ -40,7 +40,7 @@ double minimo(double n1, double n2) {
 	return n2;
 }
 
-void inicia(in_out *l){
+void inicia(little *l){
     l->qtd_elementos = 0.0;
     l->soma_areas = 0.0;
     l->tempo_anterior = 0.0;
@@ -59,20 +59,20 @@ void inicia(in_out *l){
 int main() {
 	srand(time(NULL));
 
-	in_out en;
-    in_out ew_chegada;
-    in_out ew_saida;
+	little en;
+    little ew_chegada;
+    little ew_saida;
     
     inicia(&en);
     inicia(&ew_chegada);
     inicia(&ew_saida);
 
-	double tempo_medio_clientes = 3;
+	double tempo_medio_clientes = 0.25;
 	/*printf("Informe o tempo medio entre a chegada de clientes (segundos): ");
 	scanf("%lF", &tempo_medio_clientes);*/
 	tempo_medio_clientes = 1.0 / tempo_medio_clientes;
 
-	double tempo_medio_atendimento = 2.97;
+	double tempo_medio_atendimento = 0.15;
 	/*printf("Informe o tempo medio gasto para atender cada cliente (segundos): ");
 	scanf("%lF", &tempo_medio_atendimento);*/
 	tempo_medio_atendimento = 1.0 / tempo_medio_atendimento;
@@ -80,7 +80,7 @@ int main() {
 	//tempo decorrido tempo da simulacao
 	double tempo;
 
-	double tempo_simulacao = 10000;
+	double tempo_simulacao = 10000.0;
 	/*printf("Informe o tempo total de simulacao (segundos): ");
 	scanf("%lF", &tempo_simulacao);*/
 
@@ -90,7 +90,6 @@ int main() {
 	//armazena o tempo em que o cliente que estiver em atendimento saira do comercio
 	//saida_atendimento == 0.0 indica caixa ocioso
 	double saida_atendimento = 0.0;
-	
 	double fila = 0.0;
 	double ocupacao = 0.0;
 	printf("Caculando ...");
